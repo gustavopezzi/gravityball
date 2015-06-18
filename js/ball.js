@@ -1,21 +1,12 @@
+var RADIUS = 20;
+var SPEED = 2;
+
 var input = (function() {
     var keyCode = {
         UP: 38,
         DOWN: 40,
         LEFT: 37,
-        RIGHT: 39,
-        SPACE: 32,
-        W: 87,
-        S: 83,
-        A: 65,
-        D: 68,
-        Q: 81,
-        E: 69
-    };
-
-    var mouse = {
-        x: 0,
-        y: 0
+        RIGHT: 39
     };
 
     var keyState = (function () {
@@ -31,11 +22,6 @@ var input = (function() {
         return keyState[state];
     }
 
-    document.addEventListener('mousemove', function(e) {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
-    });
-
     document.addEventListener('keydown', function(e) {
         if (keyState[e.keyCode] != undefined) {
             keyState[e.keyCode] = true;
@@ -50,8 +36,7 @@ var input = (function() {
 
     return {
         getAsyncKeyState: getAsyncKeyState,
-        keyCode: keyCode,
-        mouse: mouse
+        keyCode: keyCode
     };
 })();
 
@@ -65,26 +50,6 @@ var rPoint = function(x, y, velocity, forces) {
     this.y = y;
     this.velocity = velocity;
     this.forces = forces;
-};
-
-var circle = {
-    x: 0,
-    y: 0,
-    radius: 5,
-    velocity: null,
-    forces: null,
-
-    create: function(_x, _y, _radius) {
-        x = _x;
-    },
-
-    render: function() {
-        ctx.beginPath();
-        ctx.fillStyle = "#fff";
-        ctx.arc(points[i].x, points[i].y, 10, 0, Math.PI * 2, false);
-        ctx.fill();
-        ctx.closePath();
-    }
 };
 
 function getPointNextPos(point) {
@@ -102,19 +67,19 @@ function forceToPoint(myforce) {
 }
 
 function pointToForce(mypoint) {
-    return new force(direction(new rPoint(0,0), mypoint), distance(new rPoint(0,0), mypoint));
+    return new force(direction(new rPoint(0, 0), mypoint), distance(new rPoint(0, 0), mypoint));
 }
 
 function flipY(myforce) {
     var point = forceToPoint(myforce);
     point.x = -point.x;
-    return new force(direction(new rPoint(0,0), point), myforce.magnitude);
+    return new force(direction(new rPoint(0, 0), point), myforce.magnitude);
 }
 
 function flipX(myforce) {
     var point = forceToPoint(myforce);
     point.y = -point.y;
-    return new force(direction(new rPoint(0,0), point), myforce.magnitude);
+    return new force(direction(new rPoint(0, 0), point), myforce.magnitude);
 }
 
 function distance(a, b) {
@@ -144,19 +109,19 @@ function collision(points) {
     for (var i = 0; i < points.length; i++) {
         var newPoint = getPointNextPos(points[i]);
         
-        if (newPoint.y > canvas.height - 10)
+        if (newPoint.y > canvas.height - RADIUS)
             points[i].velocity = flipX(points[i].velocity);
         
-        if (newPoint.y < 10)
+        if (newPoint.y < RADIUS)
             points[i].velocity = flipX(points[i].velocity);
         
-        if (newPoint.x < 10)
+        if (newPoint.x < RADIUS)
             points[i].velocity = flipY(points[i].velocity);
         
-        if (newPoint.x > canvas.width - 10)
+        if (newPoint.x > canvas.width - RADIUS)
             points[i].velocity = flipY(points[i].velocity);
         
-        if (newPoint.y > canvas.height - 10 || newPoint.y < 10 || newPoint.x < 10 || newPoint.x > canvas.width - 10) {
+        if (newPoint.y > canvas.height - RADIUS || newPoint.y < RADIUS || newPoint.x < RADIUS || newPoint.x > canvas.width - RADIUS) {
             points[i].velocity.magnitude = (points[i].velocity.magnitude / 2);
             
             if (points[i].velocity.magnitude < 1.1)
@@ -178,14 +143,8 @@ window.onload = function() {
 
         for (var i = 0; i < points.length; i++) {
             ctx.beginPath();
-            ctx.fillStyle = "#414141";
-            ctx.arc(points[i].x, points[i].y, 25, 0, Math.PI * 2, false);
-            ctx.fill();
-            ctx.closePath();
-
-            ctx.beginPath();
             ctx.fillStyle = "#fff";
-            ctx.arc(points[i].x, points[i].y, 10, 0, Math.PI * 2, false);
+            ctx.arc(points[i].x, points[i].y, RADIUS, 0, Math.PI * 2, false);
             ctx.fill();
             ctx.closePath();
         }
@@ -198,24 +157,22 @@ window.onload = function() {
             points[i] = getPointNextPos(points[i]);
     }
 
-    var forces = [new force(-Math.PI / 2, 1)];
+    var forces = [new force(-Math.PI / 2, 1)]; // gravity force
     var myPoint = new rPoint(50, 50, new force(0, 15), forces);
     var points = [myPoint];
 
     function controls() {
-        var speed = 2;
-
-        if (input.getAsyncKeyState(input.keyCode.W))
-            points[0].velocity = addForces(points[0].velocity, new force(Math.PI / 2, speed));
+        if (input.getAsyncKeyState(input.keyCode.UP))
+            points[0].velocity = addForces(points[0].velocity, new force(Math.PI / 2, SPEED));
         
-        if (input.getAsyncKeyState(input.keyCode.A))
-            points[0].velocity = addForces(points[0].velocity, new force(Math.PI, speed));
+        if (input.getAsyncKeyState(input.keyCode.LEFT))
+            points[0].velocity = addForces(points[0].velocity, new force(Math.PI, SPEED));
         
-        if (input.getAsyncKeyState(input.keyCode.D))
-            points[0].velocity = addForces(points[0].velocity, new force(0, speed));
+        if (input.getAsyncKeyState(input.keyCode.RIGHT))
+            points[0].velocity = addForces(points[0].velocity, new force(0, SPEED));
         
-        if (input.getAsyncKeyState(input.keyCode.S))
-            points[0].velocity = addForces(points[0].velocity, new force(-Math.PI / 2, speed));
+        if (input.getAsyncKeyState(input.keyCode.DOWN))
+            points[0].velocity = addForces(points[0].velocity, new force(-Math.PI / 2, SPEED));
     }
 
     function animate() {
